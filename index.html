@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>행사 안내 | 1차·2차 일정표</title>
+  <style>
+    :root {color-scheme: light;}
+    * {box-sizing:border-box}
+    html,body {margin:0;min-height:100%;}
+    body {font-family: Pretendard, 'Noto Sans KR', system-ui, sans-serif;background:#f4f6fa;color:#17233b;}
+    main {min-height:100dvh;display:flex;flex-direction:column;}
+    .heading {text-align:center;padding:20px 16px 12px;}
+    h1 {font-size:clamp(20px,2.2vw,30px);margin:0 0 5px;}
+    .heading p {color:#66758a;margin:0;font-size:14px;}
+    .images {flex:1;display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px;min-height:0;}
+    .panel {display:flex;flex-direction:column;min-width:0;min-height:0;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 22px #182c4810;}
+    .panel-title {padding:13px 18px;font-weight:700;border-bottom:1px solid #eef0f4;}
+    .image-space {height:calc(100dvh - 150px);min-height:370px;display:flex;align-items:center;justify-content:center;padding:10px;}
+    .image-space img {display:block;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;}
+    .zoom-trigger {cursor:zoom-in;position:relative;}
+    .zoom-trigger:focus-visible {outline:3px solid #4169e1;outline-offset:-3px;}
+    .zoom-note {font-size:12px;color:#4169e1;margin-left:auto;}
+    .zoom-overlay {position:fixed;inset:0;z-index:1000;background:rgba(12,20,35,.94);display:none;flex-direction:column;color:white;}
+    .zoom-overlay.open {display:flex;}
+    .zoom-toolbar {min-height:62px;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;flex-wrap:wrap;background:rgba(255,255,255,.08);z-index:1;}
+    .zoom-toolbar button {border:1px solid #64748b;background:#273449;color:white;border-radius:9px;padding:9px 13px;font-size:15px;cursor:pointer;}
+    .zoom-toolbar button:focus-visible{outline:2px solid white;}
+    .zoom-percent{min-width:54px;text-align:center;font-weight:700;}
+    .zoom-close{margin-left:auto!important;}
+    .zoom-stage{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none;cursor:grab;user-select:none;}
+    .zoom-stage:active{cursor:grabbing;}
+    .zoom-stage img{position:absolute;left:50%;top:50%;width:auto;height:auto;max-width:calc(100% - 24px);max-height:calc(100% - 24px);object-fit:contain;transform-origin:center center;pointer-events:none;-webkit-user-drag:none;}
+    .zoom-help{text-align:center;font-size:12px;padding:9px;color:#d1d5db;}
+    .empty {text-align:center;line-height:1.8;color:#75849a;font-size:15px;padding:20px;}
+    .message {margin:auto;text-align:center;padding:32px 20px;}
+    .message h1 {margin-bottom:12px}
+    .home {flex:1;display:flex;align-items:center;justify-content:center;padding:30px 16px;}
+    .home-card {width:min(100%,680px);background:#fff;border-radius:22px;padding:clamp(24px,5vw,52px);box-shadow:0 8px 36px #182c4812;text-align:center;}
+    .home-card h1 {font-size:clamp(24px,4vw,36px);margin:0 0 10px;}
+    .home-card p {color:#66758a;margin:0 0 30px;}
+    .round-links {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+    .round-link {text-decoration:none;color:#17233b;background:#f4f7fd;border:1px solid #dfe7f4;border-radius:16px;padding:30px 12px;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;transition:background .2s,transform .2s;}
+    .round-link:hover,.round-link:focus-visible {background:#e9f1ff;transform:translateY(-2px);outline-color:#4169e1;}
+    .round-link strong {font-size:23px;}
+    .round-link span {font-size:14px;color:#4169e1;font-weight:700;}
+    @media(max-width:420px){.round-links{grid-template-columns:1fr}.round-link{padding:22px;}}
+    @media(max-width:720px){
+      .heading{padding:16px 12px 0}
+      .images{grid-template-columns:1fr;padding:12px;gap:12px}
+      .image-space{height:auto;min-height:0;padding:8px}
+      .image-space img{height:auto;max-height:none}
+      .panel{min-height:260px}
+      .empty{min-height:230px;display:grid;place-items:center}
+    }
+  </style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+  // 각 회차에 맞는 포스터와 일정표의 이미지 주소를 입력하세요.
+  const rounds = {
+    '1': {
+      title: '',
+      poster: 'https://icpp.ync.ac.kr/upload/Info/20261007_52041183/2026%20%EC%8B%A4%EC%A0%84%20%EC%B7%A8%EC%97%85%EC%BA%A0%ED%94%84%20%ED%8F%AC%EC%8A%A4%ED%84%B0.png',
+      schedule: 'https://drive.google.com/thumbnail?id=1P8xu6VIuNhVZq4aMuGVBXwNSLFhLBd8z&sz=w2400'
+    },
+    '2': {
+      title: '',
+      poster: '',
+      schedule: 'https://drive.google.com/thumbnail?id=1LNXn6n8DbV7OUN_fizU5gPqXyPt_VS-4&sz=w2400'
+    }
+  };
+
+  const app = document.getElementById('app');
+  const key = new URLSearchParams(location.search).get('round');
+  const entry = Object.hasOwn(rounds, key) ? rounds[key] : null;
+  if (!entry) {
+    document.title = '행사 안내';
+    if (key !== null) {
+      app.innerHTML = '<div class="message"><h1>잘못된 회차 주소입니다.</h1><p>주소를 다시 확인해 주세요.</p></div>';
+    } else {
+      const home = document.createElement('section'); home.className = 'home';
+      const card = document.createElement('div'); card.className = 'home-card';
+      const h1 = document.createElement('h1'); h1.textContent = '행사 안내';
+      const p = document.createElement('p'); p.textContent = '확인하실 회차를 선택해 주세요.';
+      const links = document.createElement('div'); links.className = 'round-links';
+      for (const [round, info] of Object.entries(rounds)) {
+        const a = document.createElement('a'); a.className = 'round-link';
+        const dest = new URL(window.location.href); dest.searchParams.set('round', round);
+        a.href = dest.href;
+        const label = document.createElement('strong'); label.textContent = `${round}차`;
+        const sub = document.createElement('span'); sub.textContent = '포스터 · 일정표 보기';
+        a.append(label, sub); links.append(a);
+      }
+      card.append(h1, p, links); home.append(card); app.append(home);
+    }
+  } else {
+    document.title = entry.title;
+    const header = document.createElement('header');
+    header.className = 'heading';
+    const h1 = document.createElement('h1'); h1.textContent = entry.title;
+    const p = document.createElement('p'); p.textContent = '포스터 · 프로그램 내용 및 일정표.';
+    header.append(h1, p);
+    const grid = document.createElement('section'); grid.className='images';
+    for (const [label, url] of [['포스터', entry.poster], ['일정표', entry.schedule]]) {
+      const panel = document.createElement('article'); panel.className='panel';
+      const heading = document.createElement('div'); heading.className='panel-title'; heading.textContent=label; if(label === '일정표' && url){heading.style.display='flex';heading.style.alignItems='center'; const hint=document.createElement('span'); hint.className='zoom-note';hint.textContent='클릭하여 확대 ⤢';heading.append(hint);}
+      const space = document.createElement('div'); space.className='image-space';
+      if (url) {
+        const img = document.createElement('img'); img.src=url; img.alt=`${entry.title} ${label}`;
+        img.onerror = () => {space.replaceChildren(); const msg=document.createElement('div'); msg.className='empty'; msg.textContent='이미지를 불러올 수 없습니다. 이미지 주소를 확인해 주세요.';space.append(msg)};
+        space.append(img);
+        if (label === '일정표') {space.classList.add('zoom-trigger');space.setAttribute('role','button');space.tabIndex=0;space.setAttribute('aria-label','일정표 확대해서 보기');space.addEventListener('click',()=>openZoom(url, img.alt));space.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openZoom(url,img.alt);}});}
+      } else {
+        const msg = document.createElement('div'); msg.className='empty'; msg.textContent=`${label} 이미지를 준비 중입니다.`; space.append(msg);
+      }
+      panel.append(heading, space); grid.append(panel);
+    }
+    app.append(header, grid);
+  }
+
+  // 일정표 전용 확대 보기: 버튼, 휠, 마우스 드래그, 모바일 핀치 제스처
+  const overlay = document.createElement('div');
+  overlay.className = 'zoom-overlay';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-modal','true');
+  overlay.setAttribute('aria-label','일정표 확대 보기');
+  overlay.innerHTML = `<div class="zoom-toolbar"><button type="button" data-action="minus" aria-label="축소">− 축소</button><span class="zoom-percent">100%</span><button type="button" data-action="plus" aria-label="확대">+ 확대</button><button type="button" data-action="reset">맞춤 보기</button><button type="button" class="zoom-close" data-action="close">✕ 닫기</button></div><div class="zoom-stage"><img alt=""></div><div class="zoom-help">마우스 휠 또는 +/− 버튼으로 확대 · 드래그로 이동 · 모바일 두 손가락 확대 가능</div>`;
+  document.body.append(overlay);
+  const stage=overlay.querySelector('.zoom-stage'), zoomImg=stage.querySelector('img'), percent=overlay.querySelector('.zoom-percent');
+  let scale=1, tx=0, ty=0, oldFocus=null;
+  const activePointers=new Map();let pointerStart=null, pinchStart=null;
+  function renderZoom(){zoomImg.style.transform=`translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(${scale})`;percent.textContent=`${Math.round(scale*100)}%`;}
+  function setScale(newScale,cx=stage.clientWidth/2,cy=stage.clientHeight/2){
+    const next=Math.min(8,Math.max(1,newScale));
+    const ratio=next/scale;
+    tx=(tx-(cx-stage.clientWidth/2))*ratio+(cx-stage.clientWidth/2);
+    ty=(ty-(cy-stage.clientHeight/2))*ratio+(cy-stage.clientHeight/2);
+    scale=next;if(scale===1){tx=0;ty=0;}renderZoom();
+  }
+  function openZoom(url,alt){oldFocus=document.activeElement;zoomImg.src=url;zoomImg.alt=alt;scale=1;tx=0;ty=0;activePointers.clear();overlay.classList.add('open');document.body.style.overflow='hidden';renderZoom();overlay.querySelector('[data-action="close"]').focus();}
+  function closeZoom(){overlay.classList.remove('open');document.body.style.overflow='';activePointers.clear();zoomImg.removeAttribute('src');if(oldFocus)oldFocus.focus();}
+  overlay.querySelector('.zoom-toolbar').addEventListener('click',e=>{
+    const btn=e.target.closest('button');if(!btn)return;
+    if(btn.dataset.action==='plus')setScale(scale*1.25);
+    if(btn.dataset.action==='minus')setScale(scale/1.25);
+    if(btn.dataset.action==='reset'){scale=1;tx=0;ty=0;renderZoom();}
+    if(btn.dataset.action==='close')closeZoom();
+  });
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closeZoom();});
+  document.addEventListener('keydown',e=>{if(!overlay.classList.contains('open'))return;if(e.key==='Escape')closeZoom();if(e.key==='+'||e.key==='=')setScale(scale*1.25);if(e.key==='-')setScale(scale/1.25);});
+  stage.addEventListener('wheel',e=>{e.preventDefault();const box=stage.getBoundingClientRect();setScale(scale*(e.deltaY<0?1.15:1/1.15),e.clientX-box.left,e.clientY-box.top);},{passive:false});
+  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  stage.addEventListener('pointerdown',e=>{stage.setPointerCapture(e.pointerId);activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});const pts=[...activePointers.values()];if(pts.length===1){pointerStart={x:e.clientX,y:e.clientY,tx,ty};pinchStart=null;}else if(pts.length===2){pinchStart={distance:dist(pts[0],pts[1]),scale,tx,ty,centerX:(pts[0].x+pts[1].x)/2,centerY:(pts[0].y+pts[1].y)/2};}});
+  stage.addEventListener('pointermove',e=>{if(!activePointers.has(e.pointerId))return;activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY});const pts=[...activePointers.values()];if(pts.length===2&&pinchStart){const centerX=(pts[0].x+pts[1].x)/2,centerY=(pts[0].y+pts[1].y)/2;const next=Math.min(8,Math.max(1,pinchStart.scale*dist(pts[0],pts[1])/Math.max(1,pinchStart.distance)));const factor=next/pinchStart.scale;const r=stage.getBoundingClientRect();tx=(pinchStart.tx-(pinchStart.centerX-r.left-r.width/2))*factor+(centerX-r.left-r.width/2);ty=(pinchStart.ty-(pinchStart.centerY-r.top-r.height/2))*factor+(centerY-r.top-r.height/2);scale=next;renderZoom();}else if(pts.length===1&&pointerStart&&scale>1){tx=pointerStart.tx+e.clientX-pointerStart.x;ty=pointerStart.ty+e.clientY-pointerStart.y;renderZoom();}});
+  function releasePointer(e){activePointers.delete(e.pointerId);pinchStart=null;const pts=[...activePointers.values()];pointerStart=pts.length===1?{x:pts[0].x,y:pts[0].y,tx,ty}:null;}
+  stage.addEventListener('pointerup',releasePointer);stage.addEventListener('pointercancel',releasePointer);
+  stage.addEventListener('dblclick',e=>{const r=stage.getBoundingClientRect();setScale(scale>1?1:2,e.clientX-r.left,e.clientY-r.top);});
+</script>
+</body>
+</html>
